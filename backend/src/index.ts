@@ -1,3 +1,9 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+
+const client = new DynamoDBClient({ region: "us-east-1"})
+const db = DynamoDBDocumentClient.from(client)
+
 export const handler = async (event: any) => {
     const method = event.requestContext.http.method;
     const path = event.requestContext.http.path;
@@ -40,8 +46,18 @@ async function createProblem() {
 }
 
 async function getProblems() {
+
+    const result = await db.send(new QueryCommand({
+        TableName: "LeetCoach",
+        KeyConditionExpression: "pk = :pk AND begins_with(sk, :skPrefix)",
+        ExpressionAttributeValues: {
+            ":pk": "USER#abc123",
+            ":skPrefix": "PROBLEM#"
+        }
+    }))
+
     return {statusCode: 200,
-        body: JSON.stringify({message: "To do"})
+        body: JSON.stringify(result.Items ?? [])
     }
 }
 
