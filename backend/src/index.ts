@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({ region: "us-east-1"})
 const db = DynamoDBDocumentClient.from(client)
@@ -81,8 +81,24 @@ async function getProblems() {
 }
 
 async function getProblem(slug: string) {
-    return {statusCode: 200,
-        body: JSON.stringify({message: "To do"})
+
+    const result = await db.send(new GetCommand({
+        TableName: "LeetCoach",
+        Key: {
+            pk: "USER#abc123",
+            sk: "PROBLEM#" + slug
+        }
+    }))
+
+    if (result.Item) {
+        return {statusCode: 200,
+            body: JSON.stringify(result.Item)
+        }
+    }
+    else {
+        return {statusCode: 404,
+            body: JSON.stringify({error: "Item not found"})
+        }
     }
 }
 
