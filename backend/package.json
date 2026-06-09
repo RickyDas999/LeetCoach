@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=dist/index.js"
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=dist/index.js",
+    "deploy": "npm run build && zip -j dist/function.zip dist/index.js && aws lambda update-function-code --function-name=leetcoach-api --zip-file=fileb://dist/function.zip --profile=leetcoach"
   },
   "keywords": [],
   "author": "",
