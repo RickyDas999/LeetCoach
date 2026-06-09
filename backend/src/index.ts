@@ -22,7 +22,7 @@ export const handler = async (event: any) => {
     }
 
     if (method === "POST" && path === "/attempts") {
-        return createAttempt();
+        return createAttempt(event.body);
     }
 
     if (method === "GET" && path === "/reviews/today") {
@@ -102,9 +102,54 @@ async function getProblem(slug: string) {
     }
 }
 
-async function createAttempt() {
-    return {statusCode: 200,
-        body: JSON.stringify({message: "To do"})
+async function createAttempt(body: string) {
+    const data = JSON.parse(body)
+    const slug = data.problemSlug
+    const timestamp = new Date().toISOString()
+    const date = new Date()
+
+    const reviewDays: Record<string, number> = {
+        failed: 1,
+        watched_solution: 2,
+        solved_with_hint: 5,
+        solved: 14
+    }
+    const days = reviewDays[data.status] ?? 3
+    date.setDate(date.getDate() + days)
+    const reviewDate = date.toISOString().split("T")[0]
+    
+
+    const attemptItem = {
+        pk: "USER#abc123",
+        sk: "ATTEMPT#" + timestamp + "#" + slug,
+        reviewDate: reviewDate,
+        status: data.status,
+        explanation: data.explanation,
+        mistakeType: data.mistakeType,
+        timeMinutes: data.timeMinutes
+    }
+
+    const reviewItem = {
+        pk: "USER#abc123",
+        sk: "REVIEW#" + reviewDate + "#" + slug,
+        problemSlug: slug,
+        completed: false,
+        reviewStage: 1,
+        createdAt: new Date().toISOString()
+    }
+
+    await db.send(new PutCommand({
+        TableName: "LeetCoach",
+        Item: attemptItem
+    }))
+
+    await db.send(new PutCommand({
+        TableName: "LeetCoach",
+        Item: reviewItem
+    }))
+
+    return {statusCode: 201,
+        body: JSON.stringify({attempt: attemptItem, reviewItem: reviewItem})
     }
 }
 
