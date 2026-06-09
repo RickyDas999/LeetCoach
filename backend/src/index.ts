@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({ region: "us-east-1"})
 const db = DynamoDBDocumentClient.from(client)
@@ -13,7 +13,7 @@ export const handler = async (event: any) => {
     }
 
     if (method === 'POST' && path === "/problems") {
-        return createProblem();
+        return createProblem(event.body);
     } 
 
     if (method === "GET" && path.startsWith("/problems/")) {
@@ -39,9 +39,28 @@ export const handler = async (event: any) => {
     }
 }
 
-async function createProblem() {
-    return {statusCode: 200,
-        body: JSON.stringify({message: "To do"})
+async function createProblem(body: string) {
+
+    const data = JSON.parse(body)
+    const slug = data.title.toLowerCase().replace(/ /g, "-")
+    const item = {
+            pk: "USER#abc123",
+            sk: "PROBLEM#" + slug,
+            title: data.title,
+            difficulty: data.difficulty,
+            pattern: data.pattern,
+            source: "leetcode",
+            createdAt: new Date().toISOString()
+        }
+
+    await db.send(new PutCommand({
+        TableName: "LeetCoach",
+        Item: item
+    }))
+
+    return {
+        statusCode: 201,
+        body: JSON.stringify(item)
     }
 }
 
