@@ -8,29 +8,37 @@ export const handler = async (event: any) => {
     const method = event.requestContext.http.method;
     const path = event.requestContext.http.path;
 
-    if (method === "GET" && path === "/problems") {
-        return getProblems();
-    }
+    try {
+        if (method === "GET" && path === "/problems") {
+            return getProblems();
+        }
 
-    if (method === 'POST' && path === "/problems") {
-        return createProblem(event.body);
-    } 
+        if (method === 'POST' && path === "/problems") {
+            return createProblem(event.body);
+        } 
 
-    if (method === "GET" && path.startsWith("/problems/")) {
-        const slug = path.split("/")[2]
-        return getProblem(slug);
-    }
+        if (method === "GET" && path.startsWith("/problems/")) {
+            const slug = path.split("/")[2]
+            return getProblem(slug);
+        }
 
-    if (method === "POST" && path === "/attempts") {
-        return createAttempt(event.body);
-    }
+        if (method === "POST" && path === "/attempts") {
+            return createAttempt(event.body);
+        }
 
-    if (method === "GET" && path === "/reviews/today") {
-        return getTodayReviews();
-    }
+        if (method === "GET" && path === "/reviews/today") {
+            return getTodayReviews();
+        }
 
-    if (method === "GET" && path === "/reviews/upcoming") {
-        return getUpcomingReviews();
+        if (method === "GET" && path === "/reviews/upcoming") {
+            return getUpcomingReviews();
+        }
+    } catch (err) {
+        console.error(err)
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "Internal Server Error" })
+        }
     }
 
     return {
@@ -42,6 +50,28 @@ export const handler = async (event: any) => {
 async function createProblem(body: string) {
 
     const data = JSON.parse(body)
+
+    if (data.title == null) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Title is missing" })
+        }
+    }
+
+    if (data.difficulty == null) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Difficulty is missing" })
+        }
+    }
+
+    if (data.pattern == null) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Pattern is missing" })
+        }
+    }
+
     const slug = data.title.toLowerCase().replace(/ /g, "-")
     const item = {
             pk: "USER#abc123",
@@ -104,6 +134,21 @@ async function getProblem(slug: string) {
 
 async function createAttempt(body: string) {
     const data = JSON.parse(body)
+
+    if (data.problemSlug == null) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Problem slug is missing" })
+        }
+    }
+
+    if (data.status == null) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Status is missing" })
+        }
+    }
+
     const slug = data.problemSlug
     const timestamp = new Date().toISOString()
     const date = new Date()
