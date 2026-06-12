@@ -49,6 +49,7 @@ export const handler = async (event: any) => {
 
 async function createProblem(body: string) {
 
+    if (!body) return { statusCode: 400, body: JSON.stringify({ error: "Request body is required" }) }
     const data = JSON.parse(body)
 
     if (data.title == null) {
@@ -133,6 +134,7 @@ async function getProblem(slug: string) {
 }
 
 async function createAttempt(body: string) {
+    if (!body) return { statusCode: 400, body: JSON.stringify({ error: "Request body is required" }) }
     const data = JSON.parse(body)
 
     if (data.problemSlug == null) {
