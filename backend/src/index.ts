@@ -154,13 +154,34 @@ async function createAttempt(body: string) {
 }
 
 async function getTodayReviews() {
+    const result = await db.send(new QueryCommand({
+        TableName: "LeetCoach",
+        KeyConditionExpression: "pk = :pk AND begins_with(sk, :skPrefix)",
+        ExpressionAttributeValues: {
+            ":pk": "USER#abc123",
+            ":skPrefix": "REVIEW#" + new Date().toISOString().split("T")[0]
+        }
+    }))
+
     return {statusCode: 200,
-        body: JSON.stringify({message: "To do"})
+        body: JSON.stringify(result.Items ?? [])
     }
 }
 
 async function getUpcomingReviews() {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split("T")[0]
+    const result = await db.send(new QueryCommand({
+        TableName: "LeetCoach",
+        KeyConditionExpression: "pk = :pk AND sk >= :skStart",
+        ExpressionAttributeValues: {
+            ":pk": "USER#abc123",
+            ":skStart": "REVIEW#" + tomorrowStr,
+        }
+    }))
+
     return {statusCode: 200,
-        body: JSON.stringify({message: "To do"})
+        body: JSON.stringify(result.Items ?? [])
     }
 }
