@@ -17,10 +17,8 @@ export default function ProblemList() {
 
 
     useEffect(() => {
-        // process.env.NEXT_PUBLIC_API_URL + "/problems"
         const fetchData = async() => {
             try {
-                console.log(process.env.NEXT_PUBLIC_API_URL)
                 const response = await fetch(process.env.NEXT_PUBLIC_API_URL + "/problems")
                 const result = await response.json()
                 setProblems(result)
