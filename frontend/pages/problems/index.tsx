@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import Link from "next/link"
 
 export default function ProblemList() {
 
@@ -43,7 +44,9 @@ export default function ProblemList() {
     
     return <ul>
         {problems.map(p => (
-            <li key = {p.sk}>{p.title}</li>
+            <li key = {p.sk}>
+                <Link href = {`/problems/${p.sk.replace("PROBLEM#", "")}`}>{p.title}</Link>
+            </li>
         ))}
     </ul>
 
